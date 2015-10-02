@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">MovieApp</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="main_activity_label">Pop Movies</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="sort_by_title">Sort by</string>
+    <string name="sort_default_value">not_specified</string>
+    <string-array name="list_entries">
+        <item>Most popular movies</item>
+        <item>Highest rated movies</item>
+        <item>Not specified</item>
+    </string-array>
+    <string-array name="list_entries_values">
+        <item>popularity.desc</item>
+        <item>vote_count.desc</item>
+        <item>not_specified</item>
+    </string-array>
+    <string name="title_activity_details">MovieDetail</string>
+    <string name="favorite_button">MARK AS FAVORITE</string>
+    <color name="white">#FFFFFF</color>
+    <color name="Green">#33CCCC</color>
+    <color name="Light_Green">#90EE90</color>
+    <color name="Grey">#808080</color>
+    <color name="black">#000000</color>
+
+</resources>
