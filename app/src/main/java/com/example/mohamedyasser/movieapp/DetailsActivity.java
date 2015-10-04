@@ -14,27 +14,20 @@ import com.squareup.picasso.Picasso;
 
 
 public class DetailsActivity extends ActionBarActivity{
-    private static Poster mPoster;
     private static final String DETTAIL_FRAGMENT_TAG = "DFTAG";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
         DetailFragment df = new DetailFragment();
+        Bundle args = getIntent().getExtras();
+        df.setArguments(args);
         getSupportFragmentManager().beginTransaction().replace(R.id.detail_fragment_container
                 ,df,DETTAIL_FRAGMENT_TAG).commit();
-        if(mPoster!=null){
-            df.setPoster(mPoster);
-        }
-
 
     }
 
 
-    public static void setPoster(Poster poster){
-        mPoster = poster;
-
-    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

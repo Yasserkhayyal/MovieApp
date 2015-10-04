@@ -14,12 +14,19 @@ public class MainActivity extends ActionBarActivity implements PosterFragment.Ca
     private static final String DETAiL_TAG = "dftag";
     public static String twoPane;
     boolean mTwoPane;
+    String[] posterStringExtras;
+    public final static String MOVIE_ARRAY = "mov_array";
+    public final static String MOVIE_VOTE_AVERAGE = "mov_vote_avg";
+    public final static String MOVIE_ID = "mov_id";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         if(findViewById(R.id.detail_fragment_container)!=null){
 
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.detail_fragment_container
+                            , new DetailFragment(), DETAiL_TAG).commit();
             mTwoPane = true;
         }else{
             mTwoPane = false;
@@ -53,27 +60,27 @@ public class MainActivity extends ActionBarActivity implements PosterFragment.Ca
 
     @Override
     public void onItemSelected(Poster poster) {
+        Bundle args = new Bundle();
+        posterStringExtras = new String[]{poster.baseURL,poster.movieTitle,poster.overview,
+                poster.releaseDate};
+        args.putDouble(MOVIE_VOTE_AVERAGE,poster.voteAverage);
+        args.putInt(MOVIE_ID,poster.id);
+        args.putStringArray(MOVIE_ARRAY,posterStringExtras);
+
         if(mTwoPane==true) {
 
             DetailFragment df = new DetailFragment();
-            if(getSupportFragmentManager().findFragmentByTag(DETAiL_TAG)!=null){
+            df.setArguments(args);
+            if(getSupportFragmentManager().findFragmentByTag(DETAiL_TAG)!=null) {
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.detail_fragment_container
-                                , df, DETAiL_TAG).commit();
-            }else{
-                getSupportFragmentManager().beginTransaction()
-                        .addToBackStack(null).add(R.id.detail_fragment_container
-                                                ,df,DETAiL_TAG).commit();
-            }
+                        .addToBackStack(null).replace(R.id.detail_fragment_container
+                        , df, DETAiL_TAG).commit();
 
-
-            if(df !=null){
-                df.setPoster(poster);
             }
 
         }else{
-            DetailsActivity.setPoster(poster);
             Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
+            intent.putExtras(args);
             startActivity(intent);
 
         }

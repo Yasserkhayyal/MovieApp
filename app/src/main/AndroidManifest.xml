@@ -37,6 +37,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.mohamedyasser.movieapp.MainActivity" />
         </activity>
+        <provider
+            android:authorities="com.example.mohamedyasser.movieapp"
+            android:name=".data.MovieContentProvider"
+            android:exported="false"
+            android:syncable="true" />
     </application>
 
 </manifest>

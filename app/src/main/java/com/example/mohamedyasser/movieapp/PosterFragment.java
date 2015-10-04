@@ -95,9 +95,8 @@ public class PosterFragment extends Fragment {
 
 
     public class GetDataTask extends AsyncTask<String,Void,String> {
-        private final String NOT_SPECIFIED = "not_specified";
         private final String MOST_POPULAR = "popularity.desc";
-        private final String HIGHEST_RATED = "vote_count.desc";
+        private final String HIGHEST_RATED = "vote_average.desc";
         private final String API_KEY = "32f7436a70e7635bfbb6ad24f099334b";
 
         @Override
@@ -106,16 +105,9 @@ public class PosterFragment extends Fragment {
             BufferedReader reader = null;
             String selection = params[0];
             Uri builtUri = null;
-            String resultString = "";
+            String resultString = null;
 
-            if (selection.equals(NOT_SPECIFIED)) {
-                Log.v(LOG_TAG, "inside selection if statement");
-                builtUri = Uri.parse("http://api.themoviedb.org/3/discover/movie?")
-                        .buildUpon()
-                        .appendQueryParameter("api_key", API_KEY)
-                        .build();
-                Log.v(LOG_TAG,builtUri.toString());
-            } else if (selection.equals(MOST_POPULAR)) {
+            if (selection.equals(MOST_POPULAR)) {
                 Log.v(LOG_TAG, "inside selection first if else statement");
                 builtUri = Uri.parse("http://api.themoviedb.org/3/discover/movie?")
                         .buildUpon()
@@ -143,7 +135,7 @@ public class PosterFragment extends Fragment {
                 StringBuffer buffer = new StringBuffer();
                 if (inputStream == null) {
                     // Nothing to do.
-                    resultString = "";
+                    resultString = null;
                 }
                 reader = new BufferedReader(new InputStreamReader(inputStream));
 
