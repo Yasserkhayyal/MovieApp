@@ -24,9 +24,9 @@ public class MainActivity extends ActionBarActivity implements PosterFragment.Ca
         setContentView(R.layout.activity_main);
         if(findViewById(R.id.detail_fragment_container)!=null){
 
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.detail_fragment_container
-                            , new DetailFragment(), DETAiL_TAG).commit();
+//            getSupportFragmentManager().beginTransaction()
+//                    .replace(R.id.detail_fragment_container
+//                            , new DetailFragment(), DETAiL_TAG).commit();
             mTwoPane = true;
         }else{
             mTwoPane = false;
@@ -73,7 +73,12 @@ public class MainActivity extends ActionBarActivity implements PosterFragment.Ca
             df.setArguments(args);
             if(getSupportFragmentManager().findFragmentByTag(DETAiL_TAG)!=null) {
                 getSupportFragmentManager().beginTransaction()
-                        .addToBackStack(null).replace(R.id.detail_fragment_container
+                        .replace(R.id.detail_fragment_container
+                        , df, DETAiL_TAG).commit();
+
+            }else{
+                getSupportFragmentManager().beginTransaction()
+                        .addToBackStack(null).add(R.id.detail_fragment_container
                         , df, DETAiL_TAG).commit();
 
             }
