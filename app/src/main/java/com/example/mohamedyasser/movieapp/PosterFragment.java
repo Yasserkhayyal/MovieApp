@@ -1,8 +1,14 @@
 package com.example.mohamedyasser.movieapp;
 
 import android.app.Activity;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.graphics.Movie;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -14,7 +20,11 @@ import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.CursorAdapter;
 import android.widget.GridView;
+import android.widget.Toast;
+
+import com.example.mohamedyasser.movieapp.data.MovieContract;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,6 +36,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Vector;
 
 /**
  * Created by Mohamed Yasser on 8/23/2015.
@@ -36,11 +47,9 @@ public class PosterFragment extends Fragment {
     ArrayList<Poster> mPosters=new ArrayList<>();
     ArrayList<String> mImageURLs=new ArrayList<>();
     GridView mGridView;
-    SharedPreferences mPrefs;
     ImageAdaptor mAdaptor;
     String mSelection;
     int mSelectedItemId;
-    boolean mTwoPane;
     Callback callback;
 
     @Override
@@ -61,25 +70,21 @@ public class PosterFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        mSelection = mPrefs.getString(getString(R.string.sort_by_title),
-                getString(R.string.sort_default_value));
+        mSelection = Utility.getSortSelection(getActivity());
         ///get the rootView by inflating the fragment from main_fragment.xml
         View rootView = inflater.inflate(R.layout.main_fragment,container,false);
         //retrieve mGridView from the inflated view by calling findViewById() and passing
         // the id of the specified grid in main_fragment.xml
         mGridView = (GridView) rootView.findViewById(R.id.gridView);
 
-        GetDataTask get = new GetDataTask();
-        get.execute(mSelection);
         return rootView;
     }
+
 
     @Override
     public void onStart() {
         super.onStart();
-        String selection = mPrefs.getString(getString(R.string.sort_by_title),
-                getString(R.string.sort_default_value));
+        String selection = Utility.getSortSelection(getActivity());
         if(selection!=null && !mSelection.equals(selection)) {
             mAdaptor = null;
             GetDataTask get = new GetDataTask();
@@ -90,6 +95,15 @@ public class PosterFragment extends Fragment {
         if(getActivity().findViewById(R.id.detail_fragment_container)==null){
             mGridView.smoothScrollToPosition(mSelectedItemId);
         }
+
+    }
+
+    private void fireAsyncTask(){
+        GetDataTask get = new GetDataTask();
+        get.execute(mSelection);
+    }
+
+    public void getDataFromDataBase(){
 
     }
 
@@ -172,22 +186,51 @@ public class PosterFragment extends Fragment {
                 JSONObject jsonObject = new JSONObject(s);
                 JSONArray results = jsonObject.getJSONArray("results");
                 int resultsLength = results.length();
-                Log.v("array length",""+resultsLength);
+                Log.v("array length", "" + resultsLength);
+//                Vector<ContentValues> cVVector = new Vector<ContentValues>(results.length());
                 for(int index=0;index<resultsLength;index++){
                     JSONObject arrayElement = results.getJSONObject(index);
+                    int id = arrayElement.getInt("id");
                     String relativePath = arrayElement.getString("poster_path");
+                    String overview = arrayElement.getString("overview");
+                    String releaseDate = arrayElement.getString("release_date");
+                    String movieTitle = arrayElement.getString("title");
+                    double popularity = arrayElement.getDouble("popularity");
+                    double voteAverage = arrayElement.getDouble("vote_average");
+                    double voteCount = arrayElement.getInt("vote_count");
+
+//                    ContentValues moviesValues = new ContentValues();
+//
+//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_MOVIE_ID, id);
+//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_POSTER_PATH,relativePath );
+//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_OVERVIEW, overview);
+//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_RELEASE_DATE, releaseDate);
+//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_POPULARITY, popularity);
+//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_TITLE, movieTitle);
+//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_VOTE_AVERAGE, voteAverage);
+//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_VOTE_COUNT, voteCount);
+//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_FAVOURITE, 0);
+//
+//                    cVVector.add(moviesValues);
+
+
                     String baseURL = "http://image.tmdb.org/t/p/w185" + relativePath;
                     Log.v(LOG_TAG,baseURL);
                     mImageURLs.add(baseURL);
-                    String movieTitle = arrayElement.getString("title");
-                    String overview = arrayElement.getString("overview");
-                    double voteAverage = arrayElement.getDouble("vote_average");
-                    String releaseDate = arrayElement.getString("release_date");
-                    int id = arrayElement.getInt("id");
                     Poster poster = new Poster(baseURL,movieTitle,overview,voteAverage,releaseDate,id);
                     mPosters.add(poster);
 
                 }
+
+//                // add to database
+//                if (cVVector.size() > 0) {
+//                    ContentValues[] cvArray = new ContentValues[cVVector.size()];
+//                    cVVector.toArray(cvArray);
+//                    getActivity().getContentResolver()
+//                            .bulkInsert(MovieContract.MovieDetailsEntry.CONTENT_URI, cvArray);
+//                }
+
+
 
                     mAdaptor = new ImageAdaptor(getActivity(), mImageURLs);
                     mGridView.setAdapter(mAdaptor);
@@ -212,5 +255,11 @@ public class PosterFragment extends Fragment {
         }
     }
 
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
 
 }

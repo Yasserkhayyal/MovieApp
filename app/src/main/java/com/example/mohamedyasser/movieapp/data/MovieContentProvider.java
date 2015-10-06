@@ -4,6 +4,7 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 
@@ -16,28 +17,8 @@ public class MovieContentProvider extends ContentProvider {
     private MovieDBHelper mOpenHelper;
 
     final static int MOVIE_DETAILS = 100;
-    final static int SPECIFIC_MOVIE_VIDEOS = 200;
-    final static int SPECIFIC_MOVIE_REVIEWS = 300;
-
-    private static SQLiteQueryBuilder sMovieAddsQueryBuilder = new SQLiteQueryBuilder();
-
-
-
-    private final String MOVIE_VIDEOS_INNER_JOIN_MOVIE_DETAILS =
-            MovieContract.MovieVideosEntry.TABLE_NAME + " INNER JOIN " +
-            MovieContract.MovieDetailsEntry.TABLE_NAME +
-            " ON " + MovieContract.MovieVideosEntry.TABLE_NAME +
-            "." + MovieContract.MovieVideosEntry.COLUMN_MOVIE_ID +
-            " = " + MovieContract.MovieDetailsEntry.TABLE_NAME +
-            "." + MovieContract.MovieDetailsEntry.COLUMN_MOVIE_ID;
-
-    private final String MOVIE_REVIEWS_INNER_JOIN_MOVIE_DETAILS =
-            MovieContract.MovieReviewsEntry.TABLE_NAME + " INNER JOIN " +
-            MovieContract.MovieDetailsEntry.TABLE_NAME +
-            " ON " + MovieContract.MovieReviewsEntry.TABLE_NAME +
-            "." + MovieContract.MovieReviewsEntry.COLUMN_MOVIE_ID +
-            " = " + MovieContract.MovieDetailsEntry.TABLE_NAME +
-            "." + MovieContract.MovieDetailsEntry.COLUMN_MOVIE_ID;
+//    final static int SPECIFIC_MOVIE_VIDEOS = 200;
+//    final static int SPECIFIC_MOVIE_REVIEWS = 300;
 
     static UriMatcher buildUriMatcher() {
         // 1) The code passed into the constructor represents the code to return for the root
@@ -49,9 +30,9 @@ public class MovieContentProvider extends ContentProvider {
         // 2) Use the addURI function to match each of the types.  Use the constants from
         // MovieContract to help define the types to the UriMatcher.
         uriMatcher.addURI(authority,MovieContract.PATH_MOVIE_DETAILS,MOVIE_DETAILS);
-        uriMatcher.addURI(authority,MovieContract.PATH_MOVIE_VIDEOS,SPECIFIC_MOVIE_VIDEOS);
-        uriMatcher.addURI(authority,MovieContract.PATH_MOVIE_REVIEWS,SPECIFIC_MOVIE_REVIEWS);
-        // 3) Return the new matcher!
+//        uriMatcher.addURI(authority,MovieContract.PATH_MOVIE_VIDEOS,SPECIFIC_MOVIE_VIDEOS);
+//        uriMatcher.addURI(authority,MovieContract.PATH_MOVIE_REVIEWS,SPECIFIC_MOVIE_REVIEWS);
+//        // 3) Return the new matcher!
         return uriMatcher;
     }
     @Override
@@ -70,18 +51,18 @@ public class MovieContentProvider extends ContentProvider {
                         .query(MovieContract.MovieDetailsEntry.TABLE_NAME,projection,selection
                         ,selectionArgs,null,null,sortOrder);
                 break;
-
-            case SPECIFIC_MOVIE_VIDEOS:
-                retCursor = mOpenHelper.getReadableDatabase()
-                        .query(MovieContract.MovieVideosEntry.TABLE_NAME,projection,selection
-                        ,selectionArgs,null,null,sortOrder);
-                break;
-
-            case SPECIFIC_MOVIE_REVIEWS:
-                retCursor = mOpenHelper.getReadableDatabase()
-                        .query(MovieContract.MovieReviewsEntry.TABLE_NAME,projection,selection
-                        ,selectionArgs,null,null,sortOrder);
-                break;
+//
+//            case SPECIFIC_MOVIE_VIDEOS:
+//                retCursor = mOpenHelper.getReadableDatabase()
+//                        .query(MovieContract.MovieVideosEntry.TABLE_NAME,projection,selection
+//                        ,selectionArgs,null,null,sortOrder);
+//                break;
+//
+//            case SPECIFIC_MOVIE_REVIEWS:
+//                retCursor = mOpenHelper.getReadableDatabase()
+//                        .query(MovieContract.MovieReviewsEntry.TABLE_NAME,projection,selection
+//                        ,selectionArgs,null,null,sortOrder);
+//                break;
 
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -101,18 +82,99 @@ public class MovieContentProvider extends ContentProvider {
             // Student: Uncomment and fill out these two cases
             case MOVIE_DETAILS:
                 return MovieContract.MovieDetailsEntry.CONTENT_TYPE;
-            case SPECIFIC_MOVIE_VIDEOS:
-                return MovieContract.MovieVideosEntry.CONTENT_TYPE;
-            case SPECIFIC_MOVIE_REVIEWS:
-                return MovieContract.MovieReviewsEntry.CONTENT_TYPE;
+//            case SPECIFIC_MOVIE_VIDEOS:
+//                return MovieContract.MovieVideosEntry.CONTENT_TYPE;
+//            case SPECIFIC_MOVIE_REVIEWS:
+//                return MovieContract.MovieReviewsEntry.CONTENT_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }    }
 
+//    @Override
+//    public int bulkInsert(Uri uri, ContentValues[] values) {
+//            final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+//            final int match = sUriMatcher.match(uri);
+//            int returnCount = 0;
+//
+//        switch (match) {
+//                case MOVIE_DETAILS:
+//                    db.beginTransaction();
+//                    try {
+//                        for (ContentValues value : values) {
+//                            long _id = db.insert(MovieContract.MovieDetailsEntry.TABLE_NAME, null, value);
+//                            if (_id != -1) {
+//                                returnCount++;
+//                            }
+//                        }
+//                        db.setTransactionSuccessful();
+//                    } finally {
+//                        db.endTransaction();
+//                    }
+//                    getContext().getContentResolver().notifyChange(uri, null);
+//                    return returnCount;
+//
+//                case SPECIFIC_MOVIE_VIDEOS:
+//                    db.beginTransaction();
+//                    try {
+//                        for (ContentValues value : values) {
+//                            long _id = db.insert(MovieContract.MovieVideosEntry.TABLE_NAME, null, value);
+//                            if (_id != -1) {
+//                                returnCount++;
+//                            }
+//                        }
+//                        db.setTransactionSuccessful();
+//                    } finally {
+//                        db.endTransaction();
+//                    }
+//                    getContext().getContentResolver().notifyChange(uri, null);
+//                    return returnCount;
+//
+//                case SPECIFIC_MOVIE_REVIEWS:
+//                    db.beginTransaction();
+//                    try {
+//                        for (ContentValues value : values) {
+//                            long _id = db.insert(MovieContract.MovieReviewsEntry.TABLE_NAME, null, value);
+//                            if (_id != -1) {
+//                                returnCount++;
+//                            }
+//                        }
+//                        db.setTransactionSuccessful();
+//                    } finally {
+//                        db.endTransaction();
+//                    }
+//                    getContext().getContentResolver().notifyChange(uri, null);
+//                    return returnCount;
+//
+//                default:
+//                    return super.bulkInsert(uri, values);
+//            }
+//        }
+
+
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        return null;
+        final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        final int match = sUriMatcher.match(uri);
+        Uri returnUri;
+
+        switch (match) {
+            case MOVIE_DETAILS: {
+                long _id = db.insert(MovieContract.MovieDetailsEntry.TABLE_NAME, null, values);
+                if ( _id > 0 )
+                    returnUri = MovieContract.MovieDetailsEntry.buildMovieDetailUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
+
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        getContext().getContentResolver().notifyChange(uri, null);
+        db.close();
+        return returnUri;
     }
+
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {

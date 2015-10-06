@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -38,7 +39,7 @@ import java.util.ArrayList;
 /**
  * Created by Mohamed Yasser on 9/29/2015.
  */
-public class DetailFragment extends Fragment implements View.OnClickListener,ListView.OnTouchListener {
+public class DetailFragment extends Fragment implements View.OnClickListener {
     private static final String LOG_TAG = "DetailFragment";
 
     private String baseURL;
@@ -48,13 +49,15 @@ public class DetailFragment extends Fragment implements View.OnClickListener,Lis
     private String releaseDate;
     private int id;
     private int duration;
-    private ListView trailersLv;
-    private ListView reviewsLv;
+    private ExpandableHeightListView trailersLv;
+    private ExpandableHeightListView reviewsLv;
     private GetRunTimeTask getRunTime;
     private GetTrailers getTrailers;
     private GetReviewsTask getReviews;
     private TrailersAdapter trailersAdapter;
     private ReviewsAdapter reviewsAdapter;
+    private TextView trailersHeader;
+    private TextView reviewsHeader;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,15 +77,35 @@ public class DetailFragment extends Fragment implements View.OnClickListener,Lis
             releaseDate = argsArray[3];
             voteAverage = args.getDouble(MainActivity.MOVIE_VOTE_AVERAGE);
             id = args.getInt(MainActivity.MOVIE_ID);
+            Log.v(LOG_TAG,id+"");
         }
         View rootView = inflater.inflate(R.layout.detail_fragment, container, false);
-        trailersLv = (ListView) rootView.findViewById(R.id.trailers_list_view);
-        trailersLv.setOnTouchListener(this);
-//        setListViewHeightBasedOnChildren(trailersLv);
 
-        reviewsLv = (ListView) rootView.findViewById(R.id.reviews_list_view);
-        reviewsLv.setOnTouchListener(this);
-//        setListViewHeightBasedOnChildren(reviewsLv);
+        trailersLv = (ExpandableHeightListView) rootView.findViewById(R.id.trailers_list_view);
+        trailersLv.setExpanded(true);
+//        trailersLv.setOnTouchListener(new View.OnTouchListener() {
+//            // Setting on Touch Listener for handling the touch inside ScrollView
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                // Disallow the touch request for parent scroll on touch of child view
+//                v.getParent().requestDisallowInterceptTouchEvent(true);
+//                return false;
+//            }
+//        });
+       // setListViewHeightBasedOnChildren(trailersLv);
+
+        reviewsLv = (ExpandableHeightListView) rootView.findViewById(R.id.reviews_list_view);
+        reviewsLv.setExpanded(true);
+//        reviewsLv.setOnTouchListener(new View.OnTouchListener() {
+//            // Setting on Touch Listener for handling the touch inside ScrollView
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                // Disallow the touch request for parent scroll on touch of child view
+//                v.getParent().requestDisallowInterceptTouchEvent(true);
+//                return false;
+//            }
+//        });;
+     //   setListViewHeightBasedOnChildren(reviewsLv);
 
 
         TextView title = (TextView) rootView.findViewById(R.id.title);
@@ -94,7 +117,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener,Lis
         button.setOnClickListener(this);
         if (baseURL != null && !baseURL.isEmpty()) {
             if (baseURL.contains("null")) {
-                imageView.setImageResource(R.drawable.poster_not_available);
+                Picasso.with(getActivity()).load(R.drawable.poster_not_available).into(imageView);
             } else {
                 Picasso.with(getActivity()).load(baseURL).into(imageView);
             }
@@ -129,6 +152,8 @@ public class DetailFragment extends Fragment implements View.OnClickListener,Lis
         getReviews.execute(id);
     }
 
+
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -138,12 +163,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener,Lis
         }
     }
 
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-            // Disallow the touch request for parent scroll on touch of child view
-            v.getParent().requestDisallowInterceptTouchEvent(true);
-            return false;
-    }
+
     /**** Method for Setting the Height of the ListView dynamically.
      **** Hack to fix the issue of not showing all the items of the ListView
      **** when placed inside a ScrollView  ****/
@@ -156,13 +176,18 @@ public class DetailFragment extends Fragment implements View.OnClickListener,Lis
         int totalHeight = 0;
         View view = null;
         for (int i = 0; i < listAdapter.getCount(); i++) {
-            view = listAdapter.getView(i, view, listView);
-            if (i == 0)
+            if (i == 0){
+                if(listAdapter.getItemViewType(i)== ListView.ITEM_VIEW_TYPE_HEADER_OR_FOOTER){
+
+                }
+            }else {
+                view = listAdapter.getView(i, view, listView);
                 view.setLayoutParams(new ViewGroup.LayoutParams(desiredWidth,
                         ViewGroup.LayoutParams.WRAP_CONTENT));
 
-            view.measure(desiredWidth, MeasureSpec.UNSPECIFIED);
-            totalHeight += view.getMeasuredHeight();
+                view.measure(desiredWidth, MeasureSpec.UNSPECIFIED);
+                totalHeight += view.getMeasuredHeight();
+            }
         }
         ViewGroup.LayoutParams params = listView.getLayoutParams();
         params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1));
@@ -312,9 +337,10 @@ public class DetailFragment extends Fragment implements View.OnClickListener,Lis
 
 
                         trailersAdapter = new TrailersAdapter(getActivity(), trailersList);
-
                         trailersLv.setAdapter(trailersAdapter);
-//                        setListViewHeightBasedOnChildren(trailersLv);
+
+
+
 
 
 
@@ -331,7 +357,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener,Lis
 
     private class GetReviewsTask extends AsyncTask<Integer, Void, String> {
         final String JSON_ARRAY_NAME = "results";
-        private final String AUHTOR = "author";
+        private final String AUTHOR = "author";
         private final String CONTENT = "content";
         ArrayList<String> authors = new ArrayList<>();
         ArrayList<String> contents = new ArrayList<>();
@@ -344,6 +370,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener,Lis
             Uri uri = Uri.parse("http://api.themoviedb.org/3/movie")
                     .buildUpon()
                     .appendPath(Integer.toString(id))
+                    .appendPath("reviews")
                     .appendQueryParameter("api_key", API_KEY)
                     .build();
             try {
@@ -396,7 +423,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener,Lis
                 JSONArray jsonArray = jsonObject.getJSONArray(JSON_ARRAY_NAME);
                 for (int index = 0; index < jsonArray.length(); index++) {
                     JSONObject arrayElement = jsonArray.getJSONObject(index);
-                    String authorName = arrayElement.getString(AUHTOR);
+                    String authorName = arrayElement.getString(AUTHOR);
                     String content = arrayElement.getString(CONTENT);
                     if (authorName != null && content != null) {
                         authors.add(authorName);
@@ -406,6 +433,10 @@ public class DetailFragment extends Fragment implements View.OnClickListener,Lis
 
                 reviewsAdapter = new ReviewsAdapter(getActivity(), authors, contents);
                 reviewsLv.setAdapter(reviewsAdapter);
+
+
+
+
 
             } catch (JSONException e) {
                 e.printStackTrace();

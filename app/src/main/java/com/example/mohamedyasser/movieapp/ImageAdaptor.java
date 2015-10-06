@@ -55,7 +55,7 @@ public class ImageAdaptor extends BaseAdapter {
         String url = data.get(position);
         if(url!=null && !url.isEmpty()) {
             if(url.contains("null")){
-                imageView.setImageResource(R.drawable.poster_not_available);
+                Picasso.with(mContext).load(R.drawable.poster_not_available).into(imageView);
 
             }else {
                 Picasso.with(mContext).load(url).into(imageView);

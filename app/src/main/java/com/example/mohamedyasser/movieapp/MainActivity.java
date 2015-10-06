@@ -12,7 +12,6 @@ import android.widget.FrameLayout;
 
 public class MainActivity extends ActionBarActivity implements PosterFragment.Callback {
     private static final String DETAiL_TAG = "dftag";
-    public static String twoPane;
     boolean mTwoPane;
     String[] posterStringExtras;
     public final static String MOVIE_ARRAY = "mov_array";
@@ -23,10 +22,6 @@ public class MainActivity extends ActionBarActivity implements PosterFragment.Ca
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         if(findViewById(R.id.detail_fragment_container)!=null){
-
-//            getSupportFragmentManager().beginTransaction()
-//                    .replace(R.id.detail_fragment_container
-//                            , new DetailFragment(), DETAiL_TAG).commit();
             mTwoPane = true;
         }else{
             mTwoPane = false;
@@ -34,6 +29,7 @@ public class MainActivity extends ActionBarActivity implements PosterFragment.Ca
 
 
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

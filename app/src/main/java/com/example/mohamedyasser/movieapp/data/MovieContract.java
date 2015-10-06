@@ -31,7 +31,6 @@ public class MovieContract {
         
         // movie id column name
         public static final String COLUMN_MOVIE_ID = "id";
-
         // movie poster path column name
         public static final String COLUMN_POSTER_PATH = "poster_path";
 
@@ -68,11 +67,12 @@ public class MovieContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
+
     }
 
     public static final class MovieVideosEntry implements BaseColumns {
 
-        //movie videos table name 
+        //movie videos table name
         public static final String TABLE_NAME = "movie_videos";
         // movie id column name
         public static final String COLUMN_MOVIE_ID = "id";
@@ -82,10 +82,10 @@ public class MovieContract {
 
         // movie video key column name
         public static final String COLUMN_VIDEO_KEY = "key";
-        
-        //movie video type column name 
+
+        //movie video type column name
         public static final String COLUMN_VIDEO_TYPE = "type";
-        
+
         //movie details uri
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_MOVIE_VIDEOS).build();
@@ -103,9 +103,9 @@ public class MovieContract {
 
     public static final class MovieReviewsEntry implements BaseColumns {
 
-        //movie reviews table name 
+        //movie reviews table name
         public static final String TABLE_NAME = "movie_reviews";
-        
+
         // movie id column name
         public static final String COLUMN_MOVIE_ID = "id";
 
@@ -114,7 +114,7 @@ public class MovieContract {
 
         // review content column name
         public static final String COLUMN_CONTENT_NAME = "content";
-        
+
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_MOVIE_REVIEWS).build();
 
@@ -128,13 +128,6 @@ public class MovieContract {
         }
 
     }
-
-
-
-
-
-
-
 
 
 }

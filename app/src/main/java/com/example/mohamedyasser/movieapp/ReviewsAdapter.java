@@ -23,6 +23,7 @@ public class ReviewsAdapter extends BaseAdapter{
 
     public ReviewsAdapter(Context context,ArrayList<String> authors,ArrayList<String> reviews){
         this.context = context;
+        this.authors = authors;
         this.reviews = reviews;
         layoutInflater = LayoutInflater.from(context);
     }
