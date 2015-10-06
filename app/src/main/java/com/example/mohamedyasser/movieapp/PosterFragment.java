@@ -47,7 +47,7 @@ public class PosterFragment extends Fragment {
     ArrayList<Poster> mPosters=new ArrayList<>();
     ArrayList<String> mImageURLs=new ArrayList<>();
     GridView mGridView;
-    ImageAdaptor mAdaptor;
+    PostersCursorAdapter mAdaptor;
     String mSelection;
     int mSelectedItemId;
     Callback callback;
@@ -76,6 +76,16 @@ public class PosterFragment extends Fragment {
         //retrieve mGridView from the inflated view by calling findViewById() and passing
         // the id of the specified grid in main_fragment.xml
         mGridView = (GridView) rootView.findViewById(R.id.gridView);
+        mAdaptor = new PostersCursorAdapter(getActivity(),null,0);
+        mGridView.setAdapter(mAdaptor);
+        if(isNetworkAvailable()){
+            Log.v(LOG_TAG,"inside onCreateView Network enabled");
+            fireAsyncTask();
+        }else{
+            Log.v(LOG_TAG,"inside onCreateView Network disabled");
+            Cursor cursor = getDataFromDataBase();
+            mAdaptor.swapCursor(cursor);
+        }
 
         return rootView;
     }
@@ -86,9 +96,15 @@ public class PosterFragment extends Fragment {
         super.onStart();
         String selection = Utility.getSortSelection(getActivity());
         if(selection!=null && !mSelection.equals(selection)) {
-            mAdaptor = null;
-            GetDataTask get = new GetDataTask();
-            get.execute(selection);
+            if(mAdaptor!=null) {
+                mAdaptor.swapCursor(null);
+            }
+            if(isNetworkAvailable()){
+                fireAsyncTask();
+            }else{
+                Cursor cursor = getDataFromDataBase();
+                mAdaptor.swapCursor(cursor);
+            }
             mSelection = selection;
         }
 
@@ -103,7 +119,26 @@ public class PosterFragment extends Fragment {
         get.execute(mSelection);
     }
 
-    public void getDataFromDataBase(){
+    public Cursor getDataFromDataBase(){
+        Log.v(LOG_TAG,"inside getDataFromDataBase");
+        String selection = Utility.getSortSelection(getActivity());
+        String sortOrder = null;
+        if(selection.equals("vote_average.desc")){
+            sortOrder = MovieContract.MovieDetailsEntry.COLUMN_VOTE_AVERAGE + " DESC";
+        }else{
+            sortOrder = MovieContract.MovieDetailsEntry.COLUMN_POPULARITY + " DESC";
+        }
+
+        Cursor retCursor = getActivity().getContentResolver().query(
+                MovieContract.MovieDetailsEntry.CONTENT_URI,null,null,null,sortOrder);
+//        retCursor==null &&
+        if( retCursor.moveToNext()==false){
+            Toast.makeText(getActivity(),"Please check your internet connection and try again!!"
+                    ,Toast.LENGTH_LONG).show();
+            getActivity().finish();
+
+        }
+            return retCursor;
 
     }
 
@@ -187,7 +222,7 @@ public class PosterFragment extends Fragment {
                 JSONArray results = jsonObject.getJSONArray("results");
                 int resultsLength = results.length();
                 Log.v("array length", "" + resultsLength);
-//                Vector<ContentValues> cVVector = new Vector<ContentValues>(results.length());
+                Vector<ContentValues> cVVector = new Vector<ContentValues>(results.length());
                 for(int index=0;index<resultsLength;index++){
                     JSONObject arrayElement = results.getJSONObject(index);
                     int id = arrayElement.getInt("id");
@@ -199,41 +234,49 @@ public class PosterFragment extends Fragment {
                     double voteAverage = arrayElement.getDouble("vote_average");
                     double voteCount = arrayElement.getInt("vote_count");
 
-//                    ContentValues moviesValues = new ContentValues();
+                    Cursor retCursor = getActivity().getContentResolver()
+                            .query(MovieContract.MovieDetailsEntry.CONTENT_URI, null,
+                                    MovieContract.MovieDetailsEntry.COLUMN_MOVIE_ID + " =?"
+                                    , new String[] {Integer.toString(id)},null);
+
+                    if(retCursor.moveToNext()==true){
+continue;
+                    }
+
+                    ContentValues moviesValues = new ContentValues();
+
+                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_MOVIE_ID, id);
+                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_POSTER_PATH,relativePath );
+                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_OVERVIEW, overview);
+                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_RELEASE_DATE, releaseDate);
+                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_POPULARITY, popularity);
+                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_TITLE, movieTitle);
+                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_VOTE_AVERAGE, voteAverage);
+                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_VOTE_COUNT, voteCount);
+                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_FAVOURITE, 0);
 //
-//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_MOVIE_ID, id);
-//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_POSTER_PATH,relativePath );
-//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_OVERVIEW, overview);
-//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_RELEASE_DATE, releaseDate);
-//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_POPULARITY, popularity);
-//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_TITLE, movieTitle);
-//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_VOTE_AVERAGE, voteAverage);
-//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_VOTE_COUNT, voteCount);
-//                    moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_FAVOURITE, 0);
-//
-//                    cVVector.add(moviesValues);
+                    cVVector.add(moviesValues);
 
 
-                    String baseURL = "http://image.tmdb.org/t/p/w185" + relativePath;
-                    Log.v(LOG_TAG,baseURL);
-                    mImageURLs.add(baseURL);
-                    Poster poster = new Poster(baseURL,movieTitle,overview,voteAverage,releaseDate,id);
-                    mPosters.add(poster);
+//                    String baseURL = "http://image.tmdb.org/t/p/w185" + relativePath;
+//                    Log.v(LOG_TAG,baseURL);
+//                    mImageURLs.add(baseURL);
+//                    Poster poster = new Poster(baseURL,movieTitle,overview,voteAverage,releaseDate,id);
+//                    mPosters.add(poster);
 
                 }
 
-//                // add to database
-//                if (cVVector.size() > 0) {
-//                    ContentValues[] cvArray = new ContentValues[cVVector.size()];
-//                    cVVector.toArray(cvArray);
-//                    getActivity().getContentResolver()
-//                            .bulkInsert(MovieContract.MovieDetailsEntry.CONTENT_URI, cvArray);
-//                }
+                // add to database
+                if (cVVector.size() > 0) {
+                    ContentValues[] cvArray = new ContentValues[cVVector.size()];
+                    cVVector.toArray(cvArray);
+                    getActivity().getContentResolver()
+                            .bulkInsert(MovieContract.MovieDetailsEntry.CONTENT_URI, cvArray);
+                }
 
 
-
-                    mAdaptor = new ImageAdaptor(getActivity(), mImageURLs);
-                    mGridView.setAdapter(mAdaptor);
+                    Cursor cursor = getDataFromDataBase();
+                    mAdaptor.swapCursor(cursor);
 
 
                 mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {

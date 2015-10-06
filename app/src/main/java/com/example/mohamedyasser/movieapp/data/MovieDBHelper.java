@@ -3,14 +3,17 @@ package com.example.mohamedyasser.movieapp.data;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 /**
  * Created by Mohamed Yasser on 10/2/2015.
  */
 public class MovieDBHelper extends SQLiteOpenHelper {
 
+
     // If you change the database schema, you must increment the database version.
     private static final int DATABASE_VERSION = 1;
+    private final static String LOG_TAG = MovieDBHelper.class.getSimpleName();
 
     static final String DATABASE_NAME = "movies.db";
 
@@ -20,12 +23,14 @@ public class MovieDBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
+
+        Log.v(LOG_TAG,"inside onCreate");
         final String SQL_CREATE_MOVIE_DETAILS_TABLE = "CREATE TABLE "
                 + MovieContract.MovieDetailsEntry.TABLE_NAME + " (" +
 
                 MovieContract.MovieDetailsEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
 
-                MovieContract.MovieDetailsEntry.COLUMN_MOVIE_ID + " INTEGER UNIQUE NOT NULL, " +
+                MovieContract.MovieDetailsEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
 
                 MovieContract.MovieDetailsEntry.COLUMN_POSTER_PATH + " TEXT, " +
                 MovieContract.MovieDetailsEntry.COLUMN_OVERVIEW + " TEXT NOT NULL, " +
@@ -69,8 +74,8 @@ public class MovieDBHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieDetailsEntry.TABLE_NAME);
-//        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieVideosEntry.TABLE_NAME);
-//        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieReviewsEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieVideosEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieReviewsEntry.TABLE_NAME);
 
         onCreate(sqLiteDatabase);
     }

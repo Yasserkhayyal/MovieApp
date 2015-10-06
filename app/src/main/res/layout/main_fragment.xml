@@ -8,5 +8,7 @@
         android:numColumns="@integer/numColumns"
         android:id="@+id/gridView"
         android:layout_gravity="center"
-        android:stretchMode="columnWidth"/>
+        android:stretchMode="columnWidth"
+
+        />
 </FrameLayout>
