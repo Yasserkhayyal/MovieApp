@@ -49,8 +49,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieContract.MovieVideosEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL," +
                 MovieContract.MovieVideosEntry.COLUMN_VIDEO_NAME + " TEXT NOT NULL, " +
                 MovieContract.MovieVideosEntry.COLUMN_VIDEO_KEY + " TEXT NOT NULL, " +
-                MovieContract.MovieVideosEntry.COLUMN_VIDEO_TYPE + " TEXT NOT NULL, " +
-                // Set up the location column as a foreign key to location table.
+                // Set up the movie id column as a foreign key to movie_details table.
                  " FOREIGN KEY (" + MovieContract.MovieVideosEntry.COLUMN_MOVIE_ID + ") REFERENCES "
                 + MovieContract.MovieDetailsEntry.TABLE_NAME +
                 " (" + MovieContract.MovieDetailsEntry.COLUMN_MOVIE_ID + "));";
@@ -62,13 +61,25 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieContract.MovieReviewsEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL," +
                 MovieContract.MovieReviewsEntry.COLUMN_AUTHOR_NAME + " TEXT, " +
                 MovieContract.MovieReviewsEntry.COLUMN_CONTENT_NAME + " TEXT, " +
+                // Set up the movie id column as a foreign key to movie_details table.
                 " FOREIGN KEY (" + MovieContract.MovieReviewsEntry.COLUMN_MOVIE_ID + ") REFERENCES "
+                + MovieContract.MovieDetailsEntry.TABLE_NAME +
+                " (" + MovieContract.MovieDetailsEntry.COLUMN_MOVIE_ID + "));";
+
+        final String SQL_CREATE_MOVIE_DURATION_TABLE = "CREATE TABLE " +
+                MovieContract.MovieDurationEntry.TABLE_NAME + " (" +
+                MovieContract.MovieDurationEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                MovieContract.MovieDurationEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
+                MovieContract.MovieDurationEntry.COLUMN_MOVIE_DURATION + " INTEGER NOT NULL, " +
+                // Set up the movie id column as a foreign key to movie_details table.
+                " FOREIGN KEY (" + MovieContract.MovieDurationEntry.COLUMN_MOVIE_ID + ") REFERENCES "
                 + MovieContract.MovieDetailsEntry.TABLE_NAME +
                 " (" + MovieContract.MovieDetailsEntry.COLUMN_MOVIE_ID + "));";
 
         sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_DETAILS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_VIDEOS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_REVIEWS_TABLE);
+        sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_DURATION_TABLE);
     }
 
     @Override
@@ -76,6 +87,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieDetailsEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieVideosEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieReviewsEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MovieContract.MovieDurationEntry.TABLE_NAME);
 
         onCreate(sqLiteDatabase);
     }

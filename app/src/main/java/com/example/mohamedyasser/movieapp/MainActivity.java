@@ -3,6 +3,7 @@ package com.example.mohamedyasser.movieapp;
 
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -17,6 +18,7 @@ public class MainActivity extends ActionBarActivity implements PosterFragment.Ca
     public final static String MOVIE_ARRAY = "mov_array";
     public final static String MOVIE_VOTE_AVERAGE = "mov_vote_avg";
     public final static String MOVIE_ID = "mov_id";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,13 +57,9 @@ public class MainActivity extends ActionBarActivity implements PosterFragment.Ca
     }
 
     @Override
-    public void onItemSelected(Poster poster) {
+    public void onItemSelected(Uri uri) {
         Bundle args = new Bundle();
-        posterStringExtras = new String[]{poster.baseURL,poster.movieTitle,poster.overview,
-                poster.releaseDate};
-        args.putDouble(MOVIE_VOTE_AVERAGE,poster.voteAverage);
-        args.putInt(MOVIE_ID,poster.id);
-        args.putStringArray(MOVIE_ARRAY,posterStringExtras);
+        args.putParcelable(DetailFragment.DETAIL_URI,uri);
 
         if(mTwoPane==true) {
 
@@ -81,7 +79,7 @@ public class MainActivity extends ActionBarActivity implements PosterFragment.Ca
 
         }else{
             Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
-            intent.putExtras(args);
+            intent.setData(uri);
             startActivity(intent);
 
         }

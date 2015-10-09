@@ -1,5 +1,6 @@
 package com.example.mohamedyasser.movieapp;
 
+import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -20,7 +21,9 @@ public class DetailsActivity extends ActionBarActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
         DetailFragment df = new DetailFragment();
-        Bundle args = getIntent().getExtras();
+        Uri selectedMovieUri = getIntent().getData();
+        Bundle args = new Bundle();
+        args.putParcelable(DetailFragment.DETAIL_URI,selectedMovieUri);
         df.setArguments(args);
         getSupportFragmentManager().beginTransaction().replace(R.id.detail_fragment_container
                 ,df,DETTAIL_FRAGMENT_TAG).commit();

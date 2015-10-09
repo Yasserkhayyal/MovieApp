@@ -9,16 +9,15 @@
         android:id="@+id/play_back_image"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_marginLeft="20dp" />
+        android:layout_marginLeft="20dp"
+        android:src="@drawable/playback_play"/>
 
     <TextView
         android:id="@+id/trailer_text_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_toRightOf="@+id/play_back_image"
-        android:layout_alignBottom="@+id/play_back_image"
         android:layout_marginLeft="50dp"
-        android:singleLine="false"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="@color/black"/>
 

@@ -29,48 +29,48 @@ public class PostersCursorAdapter extends CursorAdapter {
 
 
 
-    public static class ViewHolder{
-        ImageView imageView;
-        public ViewHolder(View view){
-            imageView = (ImageView) view.findViewById(R.id.imageView);
-        }
-
-    }
+//    public static class ViewHolder{
+//        ImageView imageView;
+//        public ViewHolder(View view){
+//            imageView = (ImageView) view.findViewById(R.id.imageView);
+//        }
+//
+//    }
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
         View view = LayoutInflater.from(context).inflate(R.layout.grid_item, parent, false);
 
-        ViewHolder viewHolder = new ViewHolder(view);
-        view.setTag(viewHolder);
+//        ViewHolder viewHolder = new ViewHolder(view);
+//        view.setTag(viewHolder);
 
         return view;
     }
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        ViewHolder viewHolder = (ViewHolder) view.getTag();
+//        ViewHolder viewHolder = (ViewHolder) view.getTag();
         int poster_path_index = cursor.getColumnIndex(MovieContract.MovieDetailsEntry.COLUMN_POSTER_PATH);
         String poster_path = cursor.getString(poster_path_index);
         String baseURL = "http://image.tmdb.org/t/p/w185" + poster_path;
+        ImageView imageView = (ImageView) view.findViewById(R.id.imageView);
 
 
             if (baseURL.contains("null")) {
                 Picasso.with(context).load(R.drawable.poster_not_available)
-                        .resize(185,200)
-                        .into(viewHolder.imageView);
+                        .resize(185, 200)
+                        .into(imageView);
 
             } else {
 
                 if(isNetworkAvailable()) {
-                    Picasso.with(context).setIndicatorsEnabled(true);
-                    Picasso.with(context).load(baseURL).into(viewHolder.imageView);
+                    Picasso.with(context).load(baseURL).into(imageView);
 //                    Picasso.with(context).load("http://i.imgur.com/DvpvklR.png").into(imageView
                 }else{
-                    Picasso.with(context).setIndicatorsEnabled(true);
                     Picasso.with(context)
                             .load(baseURL)
 //                            .networkPolicy(NetworkPolicy.OFFLINE)
-                            .into(viewHolder.imageView);
+                            .into(imageView);
+
                 }
             }
     }

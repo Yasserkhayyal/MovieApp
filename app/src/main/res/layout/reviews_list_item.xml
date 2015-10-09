@@ -6,7 +6,7 @@
     <TextView
         android:id="@+id/author_name_text_view"
         android:text="author"
-        android:layout_marginLeft="5dp"
+        android:layout_marginLeft="10dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
@@ -16,9 +16,11 @@
         android:text="content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:layout_below="@+id/author_name_text_view"
+        android:layout_alignLeft="@+id/author_name_text_view"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="30dp"
         android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>

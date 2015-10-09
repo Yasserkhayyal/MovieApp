@@ -10,13 +10,17 @@
     <string-array name="list_entries">
         <item>Most popular movies</item>
         <item>Highest rated movies</item>
+        <item>Favorite</item>
     </string-array>
     <string-array name="list_entries_values">
         <item>popularity.desc</item>
         <item>vote_average.desc</item>
+        <item>favorite</item>
     </string-array>
     <string name="title_activity_details">MovieDetail</string>
     <string name="favorite_button">MARK AS FAVORITE</string>
+    <string name="unfavorite_button">UNFAVORITE</string>
+    <string name="share_icon_title">Share</string>
     <color name="white">#FFFFFF</color>
     <color name="Green">#33CCCC</color>
     <color name="Light_Green">#90EE90</color>

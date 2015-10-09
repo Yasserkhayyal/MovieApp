@@ -44,8 +44,6 @@ import java.util.Vector;
 
 public class PosterFragment extends Fragment {
     private final String LOG_TAG = PosterFragment.class.getSimpleName();
-    ArrayList<Poster> mPosters=new ArrayList<>();
-    ArrayList<String> mImageURLs=new ArrayList<>();
     GridView mGridView;
     PostersCursorAdapter mAdaptor;
     String mSelection;
@@ -64,7 +62,7 @@ public class PosterFragment extends Fragment {
     }
 
     public interface Callback{
-        public void onItemSelected(Poster poster);
+        public void onItemSelected(Uri itemUri);
     }
 
     @Override
@@ -78,7 +76,7 @@ public class PosterFragment extends Fragment {
         mGridView = (GridView) rootView.findViewById(R.id.gridView);
         mAdaptor = new PostersCursorAdapter(getActivity(),null,0);
         mGridView.setAdapter(mAdaptor);
-        if(isNetworkAvailable()){
+        if(isNetworkAvailable() && !mSelection.equals("favorite")){
             Log.v(LOG_TAG,"inside onCreateView Network enabled");
             fireAsyncTask();
         }else{
@@ -87,6 +85,25 @@ public class PosterFragment extends Fragment {
             mAdaptor.swapCursor(cursor);
         }
 
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                mSelectedItemId = position;
+                Cursor retCursor = (Cursor) adapterView.getItemAtPosition(position);
+//                        if (mPosters != null) {
+//                            callback.onItemSelected(mPosters.get(position));
+//                        }
+                if(retCursor!=null){
+                    int movieIdColumnIndex = retCursor.getColumnIndex(MovieContract.
+                            MovieDetailsEntry.COLUMN_MOVIE_ID);
+                    int movieId = retCursor.getInt(movieIdColumnIndex);
+                    Uri uri = MovieContract.MovieDetailsEntry.buildUriWithMovieId(movieId);
+                    callback.onItemSelected(uri);
+                }
+
+
+            }
+        });
         return rootView;
     }
 
@@ -96,16 +113,27 @@ public class PosterFragment extends Fragment {
         super.onStart();
         String selection = Utility.getSortSelection(getActivity());
         if(selection!=null && !mSelection.equals(selection)) {
+            mSelection = selection;
             if(mAdaptor!=null) {
                 mAdaptor.swapCursor(null);
             }
-            if(isNetworkAvailable()){
+            if(isNetworkAvailable() && !mSelection.equals("favorite")){
                 fireAsyncTask();
             }else{
                 Cursor cursor = getDataFromDataBase();
+                if(mSelection.equals("favorite") && cursor.moveToFirst()==false){
+                    Toast.makeText(getActivity(),"No favorite movies selected!!"
+                            ,Toast.LENGTH_LONG).show();
+                }
                 mAdaptor.swapCursor(cursor);
             }
-            mSelection = selection;
+        }else if(selection.equals("favorite") && mSelection.equals("favorite")){
+            Cursor cursor = getDataFromDataBase();
+            if(mSelection.equals("favorite") && cursor.moveToFirst()==false){
+                Toast.makeText(getActivity(),"No favorite movies selected!!"
+                        ,Toast.LENGTH_LONG).show();
+            }
+            mAdaptor.swapCursor(cursor);
         }
 
         if(getActivity().findViewById(R.id.detail_fragment_container)==null){
@@ -121,24 +149,29 @@ public class PosterFragment extends Fragment {
 
     public Cursor getDataFromDataBase(){
         Log.v(LOG_TAG,"inside getDataFromDataBase");
-        String selection = Utility.getSortSelection(getActivity());
+        String sortSelection = Utility.getSortSelection(getActivity());
         String sortOrder = null;
-        if(selection.equals("vote_average.desc")){
+        String selection = null;
+        String[] selectionArgs = null;
+        if(sortSelection.equals("vote_average.desc")){
             sortOrder = MovieContract.MovieDetailsEntry.COLUMN_VOTE_AVERAGE + " DESC";
-        }else{
+        }else if(sortSelection.equals("popularity.desc")){
             sortOrder = MovieContract.MovieDetailsEntry.COLUMN_POPULARITY + " DESC";
+        }else{
+            selection = MovieContract.MovieDetailsEntry.COLUMN_FAVOURITE + " =?";
+            selectionArgs = new String[] {Integer.toString(1)};
         }
 
         Cursor retCursor = getActivity().getContentResolver().query(
-                MovieContract.MovieDetailsEntry.CONTENT_URI,null,null,null,sortOrder);
-//        retCursor==null &&
-        if( retCursor.moveToNext()==false){
-            Toast.makeText(getActivity(),"Please check your internet connection and try again!!"
-                    ,Toast.LENGTH_LONG).show();
-            getActivity().finish();
+                MovieContract.MovieDetailsEntry.CONTENT_URI,null,selection,selectionArgs,sortOrder);
+
+        if( retCursor.moveToFirst()==false && !sortSelection.equals("favorite")){
+                Toast.makeText(getActivity(), "Please check your internet connection and try again!!"
+                        , Toast.LENGTH_LONG).show();
+                getActivity().finish();
 
         }
-            return retCursor;
+        return retCursor;
 
     }
 
@@ -214,15 +247,13 @@ public class PosterFragment extends Fragment {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            mPosters = new ArrayList<>();
-            mImageURLs = new ArrayList<>();
             Log.v(LOG_TAG, "JSON Data: " + s);
             try {
                 JSONObject jsonObject = new JSONObject(s);
                 JSONArray results = jsonObject.getJSONArray("results");
                 int resultsLength = results.length();
                 Log.v("array length", "" + resultsLength);
-                Vector<ContentValues> cVVector = new Vector<ContentValues>(results.length());
+                Vector<ContentValues> cVVector = new Vector<ContentValues>(resultsLength);
                 for(int index=0;index<resultsLength;index++){
                     JSONObject arrayElement = results.getJSONObject(index);
                     int id = arrayElement.getInt("id");
@@ -240,7 +271,7 @@ public class PosterFragment extends Fragment {
                                     , new String[] {Integer.toString(id)},null);
 
                     if(retCursor.moveToNext()==true){
-continue;
+                        continue;
                     }
 
                     ContentValues moviesValues = new ContentValues();
@@ -279,17 +310,6 @@ continue;
                     mAdaptor.swapCursor(cursor);
 
 
-                mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        mSelectedItemId = position;
-                        if (mPosters != null) {
-                            callback.onItemSelected(mPosters.get(position));
-                        }
-
-
-                }
-            });
             }catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage());
             }

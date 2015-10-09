@@ -21,6 +21,7 @@ public class MovieContract {
     // For instance, content://com.example.mohamedyasser.movieapp/moviemoviedetails/ is a valid path for
     // looking at moviedetails data.
     public static final String PATH_MOVIE_DETAILS = "movie_details";
+    public static final String PATH_MOVIE_DURATION = "movie_duration";
     public static final String PATH_MOVIE_VIDEOS = "movie_videos";
     public static final String PATH_MOVIE_REVIEWS = "movie_reviews";
 
@@ -63,12 +64,37 @@ public class MovieContract {
         public static final String CONTENT_ITEM_TYPE =
                 ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_MOVIE_DETAILS;
 
-        public static Uri buildMovieDetailUri(long id) {
-            return ContentUris.withAppendedId(CONTENT_URI, id);
+        public static Uri buildMovieDetailUri(long rowId) {
+            return ContentUris.withAppendedId(CONTENT_URI, rowId);
+        }
+
+        public static Uri buildUriWithMovieId(int movieId){
+            return MovieDetailsEntry.CONTENT_URI.buildUpon().appendPath(Integer.toString(movieId))
+                    .build();
         }
 
 
     }
+
+    public static final class MovieDurationEntry implements BaseColumns{
+        public static final String TABLE_NAME = "movie_duration";
+        public static final String COLUMN_MOVIE_ID = "id";
+        public static final String COLUMN_MOVIE_DURATION = "runtime";
+
+        // movie details table uri
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_MOVIE_DURATION).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_MOVIE_DURATION;
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_MOVIE_DURATION;
+
+        public static Uri buildMovieDurationUri(long rowId){
+            return ContentUris.withAppendedId(CONTENT_URI,rowId);
+        }
+    }
+
 
     public static final class MovieVideosEntry implements BaseColumns {
 
@@ -83,8 +109,6 @@ public class MovieContract {
         // movie video key column name
         public static final String COLUMN_VIDEO_KEY = "key";
 
-        //movie video type column name
-        public static final String COLUMN_VIDEO_TYPE = "type";
 
         //movie details uri
         public static final Uri CONTENT_URI =

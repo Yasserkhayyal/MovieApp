@@ -19,8 +19,10 @@ public class MovieContentProvider extends ContentProvider {
 
     private final static String LOG_TAG = MovieContentProvider.class.getSimpleName();
     final static int MOVIE_DETAILS = 100;
+    final static int SPECIFIC_MOVIE_DETAILS = 101;
     final static int SPECIFIC_MOVIE_VIDEOS = 200;
     final static int SPECIFIC_MOVIE_REVIEWS = 300;
+    final static int SPECIFIC_MOVIE_DURATION = 400;
 
     static UriMatcher buildUriMatcher() {
         Log.v(LOG_TAG,"inside buildUriMatcher");
@@ -33,14 +35,16 @@ public class MovieContentProvider extends ContentProvider {
         // 2) Use the addURI function to match each of the types.  Use the constants from
         // MovieContract to help define the types to the UriMatcher.
         uriMatcher.addURI(authority,MovieContract.PATH_MOVIE_DETAILS,MOVIE_DETAILS);
+        uriMatcher.addURI(authority,MovieContract.PATH_MOVIE_DETAILS + "/#",SPECIFIC_MOVIE_DETAILS);
         uriMatcher.addURI(authority,MovieContract.PATH_MOVIE_VIDEOS,SPECIFIC_MOVIE_VIDEOS);
         uriMatcher.addURI(authority,MovieContract.PATH_MOVIE_REVIEWS,SPECIFIC_MOVIE_REVIEWS);
+        uriMatcher.addURI(authority,MovieContract.PATH_MOVIE_DURATION,SPECIFIC_MOVIE_DURATION);
 //        // 3) Return the new matcher!
         return uriMatcher;
     }
     @Override
     public boolean onCreate() {
-        Log.v(LOG_TAG,"inside onCreate");
+        Log.v(LOG_TAG, "inside onCreate");
         mOpenHelper = new MovieDBHelper(getContext());
         return true;
     }
@@ -56,6 +60,10 @@ public class MovieContentProvider extends ContentProvider {
                         ,selectionArgs,null,null,sortOrder);
                 break;
 
+            case SPECIFIC_MOVIE_DETAILS:
+                retCursor = getSelectedMovie(uri,projection,sortOrder);
+                break;
+
             case SPECIFIC_MOVIE_VIDEOS:
                 retCursor = mOpenHelper.getReadableDatabase()
                         .query(MovieContract.MovieVideosEntry.TABLE_NAME,projection,selection
@@ -65,6 +73,12 @@ public class MovieContentProvider extends ContentProvider {
             case SPECIFIC_MOVIE_REVIEWS:
                 retCursor = mOpenHelper.getReadableDatabase()
                         .query(MovieContract.MovieReviewsEntry.TABLE_NAME,projection,selection
+                        ,selectionArgs,null,null,sortOrder);
+                break;
+
+            case SPECIFIC_MOVIE_DURATION:
+                retCursor = mOpenHelper.getReadableDatabase()
+                        .query(MovieContract.MovieDurationEntry.TABLE_NAME,projection,selection
                         ,selectionArgs,null,null,sortOrder);
                 break;
 
@@ -86,10 +100,14 @@ public class MovieContentProvider extends ContentProvider {
             // Student: Uncomment and fill out these two cases
             case MOVIE_DETAILS:
                 return MovieContract.MovieDetailsEntry.CONTENT_TYPE;
-//            case SPECIFIC_MOVIE_VIDEOS:
-//                return MovieContract.MovieVideosEntry.CONTENT_TYPE;
-//            case SPECIFIC_MOVIE_REVIEWS:
-//                return MovieContract.MovieReviewsEntry.CONTENT_TYPE;
+            case SPECIFIC_MOVIE_DETAILS:
+                return MovieContract.MovieDetailsEntry.CONTENT_ITEM_TYPE;
+            case SPECIFIC_MOVIE_VIDEOS:
+                return MovieContract.MovieVideosEntry.CONTENT_TYPE;
+            case SPECIFIC_MOVIE_REVIEWS:
+                return MovieContract.MovieReviewsEntry.CONTENT_TYPE;
+            case SPECIFIC_MOVIE_DURATION:
+                return MovieContract.MovieDurationEntry.CONTENT_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }    }
@@ -163,10 +181,10 @@ public class MovieContentProvider extends ContentProvider {
         Uri returnUri;
 
         switch (match) {
-            case MOVIE_DETAILS: {
-                long _id = db.insert(MovieContract.MovieDetailsEntry.TABLE_NAME, null, values);
-                if ( _id > 0 )
-                    returnUri = MovieContract.MovieDetailsEntry.buildMovieDetailUri(_id);
+            case SPECIFIC_MOVIE_DURATION: {
+                long _id = db.insert(MovieContract.MovieDurationEntry.TABLE_NAME, null, values);
+                if ( _id != -1 )
+                    returnUri = MovieContract.MovieDurationEntry.buildMovieDurationUri(_id);
                 else
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
@@ -188,6 +206,33 @@ public class MovieContentProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return 0;
+        int rowUpdated=0;
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+
+        // Student: This is a lot like the delete function.  We return the number of rows impacted
+        // by the update.
+        switch(sUriMatcher.match(uri)) {
+            case MOVIE_DETAILS:
+                rowUpdated = db.update(MovieContract.MovieDetailsEntry.TABLE_NAME,values,
+                        selection,selectionArgs);
+                break;
+
+            default:
+                throw new UnsupportedOperationException("Unsupported Uri"+uri);
+        }
+
+        if(rowUpdated!=0){
+            getContext().getContentResolver().notifyChange(uri,null);
+        }
+        return rowUpdated;
+    }
+
+
+    private Cursor getSelectedMovie(Uri uri,String[] projection,String sortOrder){
+        String movieId = uri.getLastPathSegment();
+        String selection = MovieContract.MovieDetailsEntry.COLUMN_MOVIE_ID + " =?";
+        String[] selectionArgs = new String[] {movieId};
+        return getContext().getContentResolver().query(MovieContract.MovieDetailsEntry.CONTENT_URI
+                ,projection,selection,selectionArgs,sortOrder);
     }
 }
