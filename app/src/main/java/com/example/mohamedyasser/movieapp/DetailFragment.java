@@ -98,6 +98,10 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
 
     private final static int MOVIE_DURATION_INDEX = 2;
 
+    // interface for toggling favorite mark of a movie
+    public interface onFavouriteStateChanged{
+        public void onFavouriteStateChanged();
+    }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,11 +120,22 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
         // Get the provider and hold onto it to set/change the share intent.
         mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
 
-        if(firstTrailerUri!=null){
-            menuItem.setVisible(true);
+        Cursor cursor = getActivity().getContentResolver().query(
+                MovieContract.MovieVideosEntry.CONTENT_URI,
+                new String[]{MovieContract.MovieVideosEntry.COLUMN_VIDEO_KEY},
+                MovieContract.MovieVideosEntry.COLUMN_MOVIE_ID + " =?",
+                new String[]{Integer.toString(id)},null);
+
+        if(cursor.moveToFirst()){
+            String key = cursor.getString(0);
+            firstTrailerUri = Uri.parse("https://www.youtube.com/watch")
+                    .buildUpon()
+                    .appendQueryParameter("v", key).build();
+
+        }
+
+        if(firstTrailerUri!=null) {
             mShareActionProvider.setShareIntent(createShareURLIntent());
-        }else{
-            menuItem.setVisible(false);
         }
     }
 
@@ -141,10 +156,13 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
         }
         View rootView = inflater.inflate(R.layout.detail_fragment, container, false);
 
+        //Expandable height list view to force showing all the list view not the first item
+        //only
         trailersLv = (ExpandableHeightListView) rootView.findViewById(R.id.trailers_list_view);
         trailersLv.setExpanded(true);
         trailersAdapter = new VideosCursorAdaptor(getActivity(),null,0);
         trailersLv.setAdapter(trailersAdapter);
+        // handles clicking on a trailer list item event
         trailersLv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
@@ -249,7 +267,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if(isNetworkAvailable()) {
+        if(Utility.isNetworkAvailable(getActivity())) {
             getRunTime = new GetRunTimeTask();
             getTrailers = new GetTrailers();
             getReviews = new GetReviewsTask();
@@ -295,22 +313,10 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onResume() {
         super.onResume();
-        Cursor cursor = getActivity().getContentResolver().query(
-                MovieContract.MovieVideosEntry.CONTENT_URI,
-                new String[]{MovieContract.MovieVideosEntry.COLUMN_VIDEO_KEY},
-                MovieContract.MovieVideosEntry.COLUMN_MOVIE_ID + " =?",
-                new String[]{Integer.toString(id)},null);
-
-        if(cursor.moveToFirst()){
-            String key = cursor.getString(0);
-            firstTrailerUri = Uri.parse("https://www.youtube.com/watch")
-                              .buildUpon()
-                              .appendQueryParameter("v", key).build();
-
-        }
 
     }
 
+    // get movie durtion from database whether online or offline
     private Cursor getMovieDurationFromDataBase(){
         Cursor retCursor = getActivity().getContentResolver().query(
                 MovieContract.MovieDurationEntry.CONTENT_URI, DURATION_PROJECTION,
@@ -325,6 +331,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
     }
 
 
+    //get movie trailers from database whether online or offline
     private Cursor getMoviesTrailersFromDB(){
         Cursor cursor = getActivity().getContentResolver()
                 .query(MovieContract.MovieVideosEntry.CONTENT_URI, null,
@@ -335,6 +342,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
         return cursor;
     }
 
+    //get reviews from database whether online or offline
     private Cursor getMovieReviewsFromDB(){
         Cursor retCursor = getActivity().getContentResolver()
                 .query(MovieContract.MovieReviewsEntry.CONTENT_URI, null,
@@ -355,6 +363,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
         super.onSaveInstanceState(outState);
     }
 
+    //listener's onClick method of click event on the favorite button
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -370,14 +379,18 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
                 }
 
                 getActivity().getContentResolver().update(MovieContract
-                                .MovieDetailsEntry.CONTENT_URI,values,
+                                .MovieDetailsEntry.CONTENT_URI, values,
                         MovieContract.MovieDetailsEntry.COLUMN_MOVIE_ID + " =?",
                         new String[]{Integer.toString(id)});
+                if(DetailFragment.this.getActivity().getClass().getSimpleName().equals("MainActivity")) {
+                    ((onFavouriteStateChanged) getActivity()).onFavouriteStateChanged();
+                }
 
                 break;
         }
     }
 
+    // implement network call part of each asynctask
     private String getJSONData(Uri uri){
         String resultString = null;
         try {
@@ -418,8 +431,9 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
         return resultString;
     }
 
+    // get movie duration through api request
     private class GetRunTimeTask extends AsyncTask<Integer, Void, String> {
-        private final String API_KEY = "32f7436a70e7635bfbb6ad24f099334b";
+        private final String API_KEY = "";
 
         @Override
         protected String doInBackground(Integer... params) {
@@ -483,8 +497,9 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    // get movie trailers through api request
     private class GetTrailers extends AsyncTask<Integer, Void, String> {
-        private final String API_KEY = "32f7436a70e7635bfbb6ad24f099334b";
+        private final String API_KEY = "";
         private final String API_KEY_PARAM = "api_key";
         String resultString;
 
@@ -556,6 +571,10 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
 
                     }
                     trailersAdapter.swapCursor(cursor);
+                    //force recreation of options menu to setshareIntent with valid uri as the
+                    //the movie trailers table is now populated with trailers if any
+                    DetailFragment.this.getActivity().supportInvalidateOptionsMenu();
+
 
 
 
@@ -567,13 +586,14 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    // get moview reviews through api request
     private class GetReviewsTask extends AsyncTask<Integer, Void, String> {
         final String JSON_ARRAY_NAME = "results";
         private final String AUTHOR = "author";
         private final String CONTENT = "content";
         ArrayList<String> authors = new ArrayList<>();
         ArrayList<String> contents = new ArrayList<>();
-        private final String API_KEY = "32f7436a70e7635bfbb6ad24f099334b";
+        private final String API_KEY = "";
 
         @Override
         protected String doInBackground(Integer... params) {
@@ -650,10 +670,6 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    private boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
+
+
 }

@@ -31,6 +31,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -61,6 +62,7 @@ public class PosterFragment extends Fragment {
         super.onCreate(savedInstanceState);
     }
 
+    //interface fired when the user selects a poster thumbnail
     public interface Callback{
         public void onItemSelected(Uri itemUri);
     }
@@ -76,7 +78,7 @@ public class PosterFragment extends Fragment {
         mGridView = (GridView) rootView.findViewById(R.id.gridView);
         mAdaptor = new PostersCursorAdapter(getActivity(),null,0);
         mGridView.setAdapter(mAdaptor);
-        if(isNetworkAvailable() && !mSelection.equals("favorite")){
+        if(Utility.isNetworkAvailable(getActivity()) && !mSelection.equals("favorite")){
             Log.v(LOG_TAG,"inside onCreateView Network enabled");
             fireAsyncTask();
         }else{
@@ -90,13 +92,12 @@ public class PosterFragment extends Fragment {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 mSelectedItemId = position;
                 Cursor retCursor = (Cursor) adapterView.getItemAtPosition(position);
-//                        if (mPosters != null) {
-//                            callback.onItemSelected(mPosters.get(position));
-//                        }
-                if(retCursor!=null){
+                if (retCursor != null) {
                     int movieIdColumnIndex = retCursor.getColumnIndex(MovieContract.
                             MovieDetailsEntry.COLUMN_MOVIE_ID);
                     int movieId = retCursor.getInt(movieIdColumnIndex);
+                    // append movie id as a path to the uri of the selected movie to be sent to the
+                    // detail fragment later to extract this id and makes api calls with it
                     Uri uri = MovieContract.MovieDetailsEntry.buildUriWithMovieId(movieId);
                     callback.onItemSelected(uri);
                 }
@@ -107,17 +108,28 @@ public class PosterFragment extends Fragment {
         return rootView;
     }
 
+    // update cursor due to favorite button click event in the detail fragment in the tablet case
+    public void updateCursor(){
+        Cursor cursor = getDataFromDataBase();
+        if(mSelection.equals("favorite") && cursor.moveToFirst()==false){
+            Toast.makeText(getActivity(),"No favorite movies selected!!"
+                    ,Toast.LENGTH_LONG).show();
+        }
+        mAdaptor.swapCursor(cursor);
+
+    }
 
     @Override
     public void onStart() {
         super.onStart();
+        // handles back from settings activity
         String selection = Utility.getSortSelection(getActivity());
         if(selection!=null && !mSelection.equals(selection)) {
             mSelection = selection;
             if(mAdaptor!=null) {
                 mAdaptor.swapCursor(null);
             }
-            if(isNetworkAvailable() && !mSelection.equals("favorite")){
+            if(Utility.isNetworkAvailable(getActivity()) && !mSelection.equals("favorite")){
                 fireAsyncTask();
             }else{
                 Cursor cursor = getDataFromDataBase();
@@ -130,23 +142,27 @@ public class PosterFragment extends Fragment {
         }else if(selection.equals("favorite") && mSelection.equals("favorite")){
             Cursor cursor = getDataFromDataBase();
             if(mSelection.equals("favorite") && cursor.moveToFirst()==false){
-                Toast.makeText(getActivity(),"No favorite movies selected!!"
+                Toast.makeText(getActivity(),"No fav" +
+                        "orite movies selected!!"
                         ,Toast.LENGTH_LONG).show();
             }
             mAdaptor.swapCursor(cursor);
         }
 
+        // scroll to the current selection in the grid view in phone case
         if(getActivity().findViewById(R.id.detail_fragment_container)==null){
             mGridView.smoothScrollToPosition(mSelectedItemId);
         }
 
     }
 
-    private void fireAsyncTask(){
+    public void fireAsyncTask(){
         GetDataTask get = new GetDataTask();
         get.execute(mSelection);
     }
 
+
+    //gets data from data base whether in online or offline modes
     public Cursor getDataFromDataBase(){
         Log.v(LOG_TAG,"inside getDataFromDataBase");
         String sortSelection = Utility.getSortSelection(getActivity());
@@ -163,7 +179,7 @@ public class PosterFragment extends Fragment {
         }
 
         Cursor retCursor = getActivity().getContentResolver().query(
-                MovieContract.MovieDetailsEntry.CONTENT_URI,null,selection,selectionArgs,sortOrder);
+                MovieContract.MovieDetailsEntry.CONTENT_URI, null, selection, selectionArgs, sortOrder);
 
         if( retCursor.moveToFirst()==false && !sortSelection.equals("favorite")){
                 Toast.makeText(getActivity(), "Please check your internet connection and try again!!"
@@ -176,10 +192,11 @@ public class PosterFragment extends Fragment {
     }
 
 
+    // get movie details through api request
     public class GetDataTask extends AsyncTask<String,Void,String> {
         private final String MOST_POPULAR = "popularity.desc";
         private final String HIGHEST_RATED = "vote_average.desc";
-        private final String API_KEY = "32f7436a70e7635bfbb6ad24f099334b";
+        private final String API_KEY = "";
 
         @Override
         protected String doInBackground(String... params) {
@@ -285,15 +302,9 @@ public class PosterFragment extends Fragment {
                     moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_VOTE_AVERAGE, voteAverage);
                     moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_VOTE_COUNT, voteCount);
                     moviesValues.put(MovieContract.MovieDetailsEntry.COLUMN_FAVOURITE, 0);
-//
+
                     cVVector.add(moviesValues);
 
-
-//                    String baseURL = "http://image.tmdb.org/t/p/w185" + relativePath;
-//                    Log.v(LOG_TAG,baseURL);
-//                    mImageURLs.add(baseURL);
-//                    Poster poster = new Poster(baseURL,movieTitle,overview,voteAverage,releaseDate,id);
-//                    mPosters.add(poster);
 
                 }
 
@@ -318,11 +329,6 @@ public class PosterFragment extends Fragment {
         }
     }
 
-    private boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
+
 
 }

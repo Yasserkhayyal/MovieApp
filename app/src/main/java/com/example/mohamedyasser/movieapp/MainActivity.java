@@ -2,16 +2,28 @@
 package com.example.mohamedyasser.movieapp;
 
 import android.app.FragmentManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
 
+import com.example.mohamedyasser.movieapp.data.MovieContract;
 
-public class MainActivity extends ActionBarActivity implements PosterFragment.Callback {
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+
+public class MainActivity extends ActionBarActivity implements PosterFragment.Callback,
+DetailFragment.onFavouriteStateChanged{
     private static final String DETAiL_TAG = "dftag";
     boolean mTwoPane;
     String[] posterStringExtras;
@@ -23,6 +35,7 @@ public class MainActivity extends ActionBarActivity implements PosterFragment.Ca
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //check current configuration - phone or tablet
         if(findViewById(R.id.detail_fragment_container)!=null){
             mTwoPane = true;
         }else{
@@ -95,4 +108,17 @@ public class MainActivity extends ActionBarActivity implements PosterFragment.Ca
             getSupportFragmentManager().beginTransaction().remove(df).commit();
         }
     }
+
+    @Override
+    public void onFavouriteStateChanged() {
+           PosterFragment posterFragment = (PosterFragment) getSupportFragmentManager()
+                                                 .findFragmentById(R.id.poster_fragment);
+
+            if(posterFragment!=null){
+                posterFragment.updateCursor();
+            }
+
+    }
+
+
 }

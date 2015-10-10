@@ -28,20 +28,9 @@ public class PostersCursorAdapter extends CursorAdapter {
     }
 
 
-
-//    public static class ViewHolder{
-//        ImageView imageView;
-//        public ViewHolder(View view){
-//            imageView = (ImageView) view.findViewById(R.id.imageView);
-//        }
-//
-//    }
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
         View view = LayoutInflater.from(context).inflate(R.layout.grid_item, parent, false);
-
-//        ViewHolder viewHolder = new ViewHolder(view);
-//        view.setTag(viewHolder);
 
         return view;
     }
@@ -68,7 +57,8 @@ public class PostersCursorAdapter extends CursorAdapter {
                 }else{
                     Picasso.with(context)
                             .load(baseURL)
-//                            .networkPolicy(NetworkPolicy.OFFLINE)
+                            .networkPolicy(NetworkPolicy.OFFLINE)
+                            .placeholder(R.drawable.error_loading)
                             .into(imageView);
 
                 }
