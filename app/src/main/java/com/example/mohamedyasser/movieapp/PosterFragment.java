@@ -196,7 +196,7 @@ public class PosterFragment extends Fragment {
     public class GetDataTask extends AsyncTask<String,Void,String> {
         private final String MOST_POPULAR = "popularity.desc";
         private final String HIGHEST_RATED = "vote_average.desc";
-        private final String API_KEY = "";
+        private final String API_KEY = BuildConfig.MOVIES_API_KEY;
 
         @Override
         protected String doInBackground(String... params) {

@@ -8,8 +8,8 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,7 +22,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 
-public class MainActivity extends ActionBarActivity implements PosterFragment.Callback,
+public class MainActivity extends AppCompatActivity implements PosterFragment.Callback,
 DetailFragment.onFavouriteStateChanged{
     private static final String DETAiL_TAG = "dftag";
     boolean mTwoPane;

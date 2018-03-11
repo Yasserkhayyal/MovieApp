@@ -433,7 +433,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
 
     // get movie duration through api request
     private class GetRunTimeTask extends AsyncTask<Integer, Void, String> {
-        private final String API_KEY = "";
+        private final String API_KEY = BuildConfig.MOVIES_API_KEY;
 
         @Override
         protected String doInBackground(Integer... params) {
@@ -499,7 +499,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
 
     // get movie trailers through api request
     private class GetTrailers extends AsyncTask<Integer, Void, String> {
-        private final String API_KEY = "";
+        private final String API_KEY = BuildConfig.MOVIES_API_KEY;
         private final String API_KEY_PARAM = "api_key";
         String resultString;
 
@@ -573,7 +573,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
                     trailersAdapter.swapCursor(cursor);
                     //force recreation of options menu to setshareIntent with valid uri as the
                     //the movie trailers table is now populated with trailers if any
-                    DetailFragment.this.getActivity().supportInvalidateOptionsMenu();
+                    DetailFragment.this.getActivity().invalidateOptionsMenu();
 
 
 
@@ -593,7 +593,7 @@ public class DetailFragment extends Fragment implements View.OnClickListener {
         private final String CONTENT = "content";
         ArrayList<String> authors = new ArrayList<>();
         ArrayList<String> contents = new ArrayList<>();
-        private final String API_KEY = "";
+        private final String API_KEY = BuildConfig.MOVIES_API_KEY;
 
         @Override
         protected String doInBackground(Integer... params) {

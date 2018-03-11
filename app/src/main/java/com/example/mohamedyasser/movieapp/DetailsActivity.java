@@ -1,8 +1,8 @@
 package com.example.mohamedyasser.movieapp;
 
 import android.net.Uri;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,7 +14,7 @@ import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 
 
-public class DetailsActivity extends ActionBarActivity{
+public class DetailsActivity extends AppCompatActivity {
     private static final String DETTAIL_FRAGMENT_TAG = "DFTAG";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
